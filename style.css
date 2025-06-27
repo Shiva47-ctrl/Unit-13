@@ -1,0 +1,64 @@
+/* style.css - Custom styles for Tiger Martial Arts */
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: bold;
+}
+
+section {
+  scroll-margin-top: 100px;
+}
+
+button, .btn {
+  transition: background-color 0.3s ease;
+}
+
+input, textarea {
+  outline: none;
+}
+
+input:focus, textarea:focus {
+  border-color: #f59e0b; /* Tailwind yellow-500 */
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+nav ul li a {
+  transition: color 0.2s;
+}
+
+nav ul li a:hover {
+  color: #fff;
+}
+
+/* Custom utility for card shadows */
+.card-shadow {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Responsive image tweaks */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Placeholder map box */
+.map-placeholder {
+  background-color: #e5e7eb; /* Tailwind gray-200 */
+  color: #6b7280; /* Tailwind gray-500 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* Footer padding fix for short pages */
+html, body {
+  min-height: 100%;
+}
