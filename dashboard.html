@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard | Tiger Martial Arts</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <header class="bg-yellow-500 text-white py-6">
+    <div class="container mx-auto px-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Tiger Martial Arts</h1>
+      <a href="index.html" class="hover:underline">🏠 Back to Home</a>
+    </div>
+  </header>
+
+  <main class="py-12 px-4 max-w-6xl mx-auto">
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+      <h2 class="text-3xl font-bold mb-2">Welcome, <span id="greeting">Student</span> 👋</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div class="bg-gray-100 p-4 rounded shadow">
+          <p class="text-xl">🥋 <strong>Remaining Classes:</strong> <span id="remainingClasses">0</span> / <span id="totalClasses">0</span></p>
+          <p class="text-xl">💰 <strong>Fees Paid:</strong> AED <span id="feesPaid">0</span></p>
+          <p class="text-xl">🧾 <strong>Fees Due:</strong> AED <span id="feesDue">0</span></p>
+        </div>
+        <div class="flex flex-col space-y-4">
+          <button onclick="toggleClassForm()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">➕ Book a Class</button>
+          <button onclick="toggleCancelForm()" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">❌ Cancel a Class</button>
+          <button onclick="markFeesPaid()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">✅ Mark Fees Paid</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Class Booking Form -->
+    <div id="classForm" class="hidden bg-white p-6 rounded shadow mb-8">
+      <h3 class="text-xl font-bold mb-4">Book a Class</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label>Martial Art</label>
+          <select id="classType" class="w-full border border-gray-300 rounded px-3 py-2">
+            <option>Judo</option>
+            <option>Karate</option>
+            <option>Muay Thai</option>
+            <option>Taekwondo</option>
+          </select>
+        </div>
+        <div>
+          <label>Time</label>
+          <select id="classTime" class="w-full border border-gray-300 rounded px-3 py-2">
+            <option>Monday 5pm</option>
+            <option>Tuesday 6pm</option>
+            <option>Wednesday 4pm</option>
+            <option>Thursday 7pm</option>
+          </select>
+        </div>
+        <div>
+          <label>Fee (AED)</label>
+          <select id="classFee" class="w-full border border-gray-300 rounded px-3 py-2">
+            <option value="25">25</option>
+            <option value="30">30</option>
+            <option value="35">35</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="submitClass()" class="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded">Confirm Booking</button>
+    </div>
+
+    <!-- Cancel Class Form -->
+    <div id="cancelForm" class="hidden bg-white p-6 rounded shadow mb-8">
+      <h3 class="text-xl font-bold mb-4">Cancel a Class</h3>
+      <select id="cancelSelect" class="w-full border border-gray-300 rounded px-3 py-2 mb-4"></select>
+      <button onclick="cancelClass()" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">Cancel Selected Class</button>
+    </div>
+
+    <!-- Class History -->
+    <div class="bg-white p-6 rounded shadow">
+      <h3 class="text-2xl font-bold mb-4">📅 Class History</h3>
+      <table class="table-auto w-full">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-4 py-2 text-left">Martial Art</th>
+            <th class="px-4 py-2 text-left">Time</th>
+            <th class="px-4 py-2 text-left">Fee (AED)</th>
+          </tr>
+        </thead>
+        <tbody id="historyTable" class="bg-white"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCvCN6M4kUwT4-Vz8uuwYoWnMI8v3_L-xc",
+      authDomain: "login-3a3da.firebaseapp.com",
+      databaseURL: "https://login-3a3da-default-rtdb.firebaseio.com",
+      projectId: "login-3a3da",
+      storageBucket: "login-3a3da.appspot.com",
+      messagingSenderId: "658760034140",
+      appId: "1:658760034140:web:6f07ca9b48ed1793634399"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const uid = new URLSearchParams(window.location.search).get('uid');
+    const name = new URLSearchParams(window.location.search).get('name');
+    if (name) document.getElementById('greeting').textContent = name;
+
+    function fetchStudentData() {
+      if (!uid) return alert("Missing UID in URL");
+
+      database.ref('users/' + uid).once('value').then(snap => {
+        const d = snap.val();
+        document.getElementById('remainingClasses').textContent = d?.remaining_classes ?? 0;
+        document.getElementById('totalClasses').textContent = d?.total_classes ?? 0;
+        document.getElementById('feesPaid').textContent = d?.fees_paid ?? 0;
+        document.getElementById('feesDue').textContent = d?.fees_due ?? 0;
+      });
+
+      loadClassHistory();
+    }
+
+    function toggleClassForm() {
+      const el = document.getElementById('classForm');
+      el.classList.toggle('hidden');
+    }
+
+    function toggleCancelForm() {
+      const el = document.getElementById('cancelForm');
+      el.classList.toggle('hidden');
+    }
+
+    function submitClass() {
+      const type = document.getElementById('classType').value;
+      const time = document.getElementById('classTime').value;
+      const fee = parseInt(document.getElementById('classFee').value);
+
+      const remaining = parseInt(document.getElementById('remainingClasses').textContent) || 0;
+      const total = parseInt(document.getElementById('totalClasses').textContent) || 0;
+      const due = parseInt(document.getElementById('feesDue').textContent) || 0;
+
+      const booking = { class: type, time: time, fee: fee };
+      database.ref('users/' + uid + '/bookings').push(booking);
+
+      database.ref('users/' + uid).update({
+        remaining_classes: remaining + 1,
+        total_classes: total + 1,
+        fees_due: due + fee
+      }).then(() => {
+        fetchStudentData();
+        toggleClassForm();
+        alert("Class booked!");
+      });
+    }
+
+    function loadClassHistory() {
+      const table = document.getElementById('historyTable');
+      const dropdown = document.getElementById('cancelSelect');
+      table.innerHTML = "";
+      dropdown.innerHTML = "";
+
+      database.ref('users/' + uid + '/bookings').once('value').then(snapshot => {
+        snapshot.forEach(child => {
+          const d = child.val();
+          table.innerHTML += `<tr><td class="px-4 py-2">${d.class}</td><td class="px-4 py-2">${d.time}</td><td class="px-4 py-2">${d.fee}</td></tr>`;
+          const opt = document.createElement("option");
+          opt.value = child.key;
+          opt.textContent = `${d.class} - ${d.time} (AED ${d.fee})`;
+          dropdown.appendChild(opt);
+        });
+      });
+    }
+
+    function cancelClass() {
+      const key = document.getElementById('cancelSelect').value;
+      if (!key) return alert("Select a class to cancel");
+
+      database.ref('users/' + uid + '/bookings/' + key).once('value').then(snap => {
+        const fee = snap.val().fee;
+
+        let remaining = parseInt(document.getElementById('remainingClasses').textContent) || 0;
+        let total = parseInt(document.getElementById('totalClasses').textContent) || 0;
+        let due = parseInt(document.getElementById('feesDue').textContent) || 0;
+
+        database.ref('users/' + uid + '/bookings/' + key).remove();
+        database.ref('users/' + uid).update({
+          remaining_classes: Math.max(remaining - 1, 0),
+          total_classes: Math.max(total - 1, 0),
+          fees_due: Math.max(due - fee, 0)
+        }).then(() => {
+          fetchStudentData();
+          toggleCancelForm();
+          alert("Class cancelled.");
+        });
+      });
+    }
+
+    function markFeesPaid() {
+      const due = parseInt(document.getElementById('feesDue').textContent) || 0;
+      const paid = parseInt(document.getElementById('feesPaid').textContent) || 0;
+      if (due === 0) return alert("No pending fees.");
+
+      database.ref('users/' + uid).update({
+        fees_paid: paid + due,
+        fees_due: 0
+      }).then(() => {
+        fetchStudentData();
+        alert("Fees marked as paid!");
+      });
+    }
+
+    fetchStudentData();
+  </script>
+</body>
+</html>
