@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Membership | Tiger Martial Arts</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
@@ -29,7 +29,7 @@
     <div class="container mx-auto px-6 md:px-16 text-center">
       <h2 class="text-4xl font-bold mb-6">Membership Options</h2>
       <p class="text-lg text-gray-700 max-w-2xl mx-auto mb-8">
-        Join Tiger Martial Arts and gain access to expert training, world-class facilities, and a supportive martial arts community. Whether you’re looking for casual fitness or competitive discipline, we have a plan for you.
+        Join Tiger Martial Arts and gain access to expert training, world-class facilities, and a supportive martial arts community.
       </p>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div class="bg-gray-100 p-6 rounded shadow">
@@ -51,50 +51,88 @@
     </div>
   </section>
 
-  <!-- Account Section -->
+  <!-- Login/Register -->
   <section class="py-16 bg-gray-50">
     <div class="container mx-auto px-6 md:px-16">
       <h2 class="text-3xl font-bold text-center mb-8">Member Login / Register</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- Login -->
         <div class="bg-white p-6 rounded shadow">
           <h3 class="text-xl font-semibold mb-4">Login</h3>
-          <form>
-            <label class="block mb-2 font-medium">Email</label>
-            <input type="email" class="w-full border border-gray-300 rounded px-4 py-2 mb-4" placeholder="Enter your email">
-
-            <label class="block mb-2 font-medium">Password</label>
-            <input type="password" class="w-full border border-gray-300 rounded px-4 py-2 mb-4" placeholder="Enter your password">
-
-            <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded">Login</button>
-          </form>
+          <input id="login_email" type="email" placeholder="Enter your email" class="w-full border border-gray-300 rounded px-4 py-2 mb-4" />
+          <input id="login_password" type="password" placeholder="Enter your password" class="w-full border border-gray-300 rounded px-4 py-2 mb-4" />
+          <button onclick="login()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded">Login</button>
         </div>
 
-        <!-- Register -->
         <div class="bg-white p-6 rounded shadow">
           <h3 class="text-xl font-semibold mb-4">Register</h3>
-          <form>
-            <label class="block mb-2 font-medium">Full Name</label>
-            <input type="text" class="w-full border border-gray-300 rounded px-4 py-2 mb-4" placeholder="Your full name">
-
-            <label class="block mb-2 font-medium">Email</label>
-            <input type="email" class="w-full border border-gray-300 rounded px-4 py-2 mb-4" placeholder="Your email">
-
-            <label class="block mb-2 font-medium">Password</label>
-            <input type="password" class="w-full border border-gray-300 rounded px-4 py-2 mb-4" placeholder="Choose a password">
-
-            <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded">Register</button>
-          </form>
+          <input id="register_name" type="text" placeholder="Full Name" class="w-full border border-gray-300 rounded px-4 py-2 mb-4" />
+          <input id="register_email" type="email" placeholder="Your email" class="w-full border border-gray-300 rounded px-4 py-2 mb-4" />
+          <input id="register_password" type="password" placeholder="Choose a password" class="w-full border border-gray-300 rounded px-4 py-2 mb-4" />
+          <button onclick="register()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded">Register</button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="bg-gray-800 text-white py-6 mt-12">
     <div class="container mx-auto px-4 text-center">
       <p>&copy; 2025 Tiger Martial Arts. All rights reserved.</p>
     </div>
   </footer>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCKT-Ad-EfZeymzFAf90H7uHelfbd1Tx0g",
+      authDomain: "unit-13-eb386.firebaseapp.com",
+      projectId: "unit-13-eb386",
+      storageBucket: "unit-13-eb386.appspot.com",
+      messagingSenderId: "135073189511",
+      appId: "1:135073189511:web:b8db12f280cc2a1e98b222"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    window.register = async () => {
+      const name = document.getElementById('register_name').value;
+      const email = document.getElementById('register_email').value;
+      const password = document.getElementById('register_password').value;
+
+      if (!name || !email || !password) return alert('Fill in all fields.');
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await set(ref(db, 'users/' + userCredential.user.uid), {
+          full_name: name,
+          email: email,
+          createdAt: new Date().toISOString()
+        });
+        alert('Registration successful!');
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
+    window.login = async () => {
+      const email = document.getElementById('login_email').value;
+      const password = document.getElementById('login_password').value;
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const snap = await get(ref(db, 'users/' + userCredential.user.uid));
+        const full_name = snap.exists() ? snap.val().full_name : 'User';
+        alert(`Welcome, ${full_name}`);
+        window.location.href = `dashboard.html?name=${encodeURIComponent(full_name)}&uid=${userCredential.user.uid}`;
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+  </script>
 </body>
 </html>
